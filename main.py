@@ -2,11 +2,12 @@ import random
 import turtle
 import collections
 import tkinter
+import threading
 
 words_diff = ["cat", "dog", "cow", "bird", "snail", "camael"]
 already_in = []
-wrong_count=0
-won = False
+wrong_count = 0
+word = random.choice(words_diff)
 hmTC = (0, 0)
 
 
@@ -22,6 +23,7 @@ def create_boxes():
         x_position += 80
     return boxes
 
+
 # drawing the boxes of the letters
 def draw_box(drawing_turtle):
     drawing_turtle.pendown()
@@ -34,11 +36,12 @@ def draw_box(drawing_turtle):
     drawing_turtle.fd(50)
     drawing_turtle.lt(90)
 
+
 # responsible for drawing the hangman
 def Hangman(num):
     global hmTC
     hm = turtle.Turtle()
-    if (num == 0):
+    if num == 0:
         hm.penup()
         hm.setpos(-670, -340)
         hm.pendown()
@@ -148,7 +151,7 @@ def Hangman(num):
         hm.circle(10, 180)
 
 
-def check_answer(user_input):
+def check_answer(user_input,boxes_list):
     global wrong_count
 
     # keep tracking the index of the correct letter
@@ -157,14 +160,17 @@ def check_answer(user_input):
     # checks if the user already typed the letter
     if user_input in already_in:
         print("you already guessed that number")
-        wrong_count+=1
+        wrong_count += 1
 
+    elif user_input=="":
+        wrong_count+=1
+        print("Please Enter A valid Letter")
     # Loops the user input and puts the letter in the box with the correct index
     else:
         for letter in word:
             if user_input == letter:
                 already_in.append(user_input)
-                boxes_list[count].write(f" {letter}",align="left", font=("Arial", 30, "bold"))
+                boxes_list[count].write(f" {letter}", align="left", font=("Arial", 30, "bold"))
             count += 1
     # checks if user has put a wrong letter
     if user_input not in word:
@@ -172,57 +178,80 @@ def check_answer(user_input):
         wrong_count += 1
         print("wrong! take another guess: ")
 
-# Checks if the user has won or not using recursion
-def repeat(answer):
-    DidWin(answer)
 
-    if wrong_count !=10:
+# Checks if the user has won or not
+def repeat(answer,entry,screen,boxes_list,win):
+    DidWin(answer,win,screen)
+
+    if wrong_count != 10:
         screen.update()
-        user_input=entry.get()
-        check_answer(user_input)
-        clear_text()
+        user_input = entry.get()
+        check_answer(user_input,boxes_list=boxes_list)
+        clear_text(entry)
         print(answer, already_in)
     elif wrong_count == 10:
         label = tkinter.Label(win, text="You Lose", font=("Courier 22 bold"))
         label.pack()
+        tkinter.Button(win, text="Do you want to retry ?", width=20,command= lambda :Restart(win,screen)).pack(pady=20)
+        tkinter.Button(win, text="Exit ", width=20,command=ExitProgram).pack(pady=50)
 
-def DidWin(answer):
+
+
+
+
+def DidWin(answer,win,screen):
     if collections.Counter(answer) == collections.Counter(already_in):
         label = tkinter.Label(win, text="You win", font=("Courier 22 bold"))
         label.pack()
-        exit()
+        tkinter.Button(win, text="Do you want to retry ?", width=20,command= lambda :Restart(win,screen)).pack(pady=20)
+        tkinter.Button(win, text="Exit ", width=20,command=ExitProgram).pack(pady=50)
     else:
-        return False
+        return
+
 
 # Clears the text
-def clear_text():
-   entry.delete(0,tkinter.END)
+def clear_text(entry):
+    entry.delete(0, tkinter.END)
+
+# Exits the program
+def ExitProgram():
+    exit()
+
+def game():
+    # Create an instance of Tkinter frame
+    win = tkinter.Tk()
+
+    # Set the geometry of Tkinter frame
+    win.geometry("450x350")
+
+    # set Up the turtle
+    screen = turtle.Screen()
+    screen.tracer(0)
+    answer = list(word)
+    boxes_list = create_boxes()
+
+    label = tkinter.Label(win, text="Choose a letter", font=("Courier 22 bold"))
+    label.pack()
+
+    # Create an Entry widget to accept User Input
+    entry = tkinter.Entry(win, width=40)
+    entry.focus_set()
+    entry.pack()
 
 
-#Create an instance of Tkinter frame
-win= tkinter.Tk()
+    print(word)
 
-#Set the geometry of Tkinter frame
-win.geometry("550x250")
+    # Create a Button to validate Entry Widget
+    tkinter.Button(win, text="Okay", width=20, command=lambda: repeat(answer,entry,screen,boxes_list,win)).pack(pady=20)
+    screen.update()
 
-label=tkinter.Label(win, text="Choose a letter", font=("Courier 22 bold"))
-label.pack()
+    screen.exitonclick()
 
-#Create an Entry widget to accept User Input
-entry= tkinter.Entry(win, width= 40)
-entry.focus_set()
-entry.pack()
+def Restart(win,screen):
+    global wrong_count
+    wrong_count=0
+    screen.reset()
+    win.destroy()
+    game()
 
-# set Up the turtle
-screen = turtle.Screen()
-screen.tracer(0)
-word = random.choice(words_diff)
-answer = list(word)
-boxes_list = create_boxes()
-print(word)
-
-#Create a Button to validate Entry Widget
-tkinter.Button(win, text= "Okay",width= 20, command= lambda: repeat(answer)).pack(pady=20)
-win.update()
-
-win.mainloop()
+game()
