@@ -1,10 +1,12 @@
 import random
 import turtle
 import collections
+import tkinter
 
 words_diff = ["cat", "dog", "cow", "bird", "snail", "camael"]
 already_in = []
 wrong_count=0
+won = False
 hmTC = (0, 0)
 
 
@@ -172,23 +174,55 @@ def check_answer(user_input):
 
 # Checks if the user has won or not using recursion
 def repeat(answer):
-    if collections.Counter(answer) == collections.Counter(already_in):
-        print("you win!")
-    elif wrong_count !=10:
+    DidWin(answer)
+
+    if wrong_count !=10:
         screen.update()
-        user_input = input("take a guess: ")
+        user_input=entry.get()
         check_answer(user_input)
-        repeat(answer)
+        clear_text()
+        print(answer, already_in)
     elif wrong_count == 10:
-        print('You lose!')
+        label = tkinter.Label(win, text="You Lose", font=("Courier 22 bold"))
+        label.pack()
+
+def DidWin(answer):
+    if collections.Counter(answer) == collections.Counter(already_in):
+        label = tkinter.Label(win, text="You win", font=("Courier 22 bold"))
+        label.pack()
+        exit()
+    else:
+        return False
+
+# Clears the text
+def clear_text():
+   entry.delete(0,tkinter.END)
 
 
+#Create an instance of Tkinter frame
+win= tkinter.Tk()
 
+#Set the geometry of Tkinter frame
+win.geometry("550x250")
+
+label=tkinter.Label(win, text="Choose a letter", font=("Courier 22 bold"))
+label.pack()
+
+#Create an Entry widget to accept User Input
+entry= tkinter.Entry(win, width= 40)
+entry.focus_set()
+entry.pack()
+
+# set Up the turtle
 screen = turtle.Screen()
 screen.tracer(0)
 word = random.choice(words_diff)
 answer = list(word)
-
 boxes_list = create_boxes()
-repeat(answer)
-screen.exitonclick()
+print(word)
+
+#Create a Button to validate Entry Widget
+tkinter.Button(win, text= "Okay",width= 20, command= lambda: repeat(answer)).pack(pady=20)
+win.update()
+
+win.mainloop()
